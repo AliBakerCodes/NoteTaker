@@ -51,33 +51,36 @@ notes.post('/', (req, res) => {
   }
 });
 
-notes.delete('/', (req, res) => {
+notes.delete('/:id', (req, res) => {
   // Log that a POST request was received
   console.info(`${req.method} request received to delete notes`);
 
   // Destructuring assignment for the items in req.body
-  const {title, text } = req.body;
-  console.log(title)
-  console.log(text)
-  // If all the required properties are present
-  if (title && text) {
-    // Variable for the object we will save
-    const newNote = {
-      id: uuid(),
-      title,
-      text,
-    };
-    console.log(newNote);
-    readAndAppend(newNote, './db/db.json');
-
+  const {id} = req.params;
+  if (id) {
+    console.log(id);
+  readFromFile('./db/db.json').then((data) => {
+    try {
+      const notes =JSON.parse(data);
+      for (let i=0; i<notes.length; i++){
+        if(notes[i].id===id){
+          notes.splice(i,1);
+        }
+        fs.writeFile('./db/db.json',JSON.stringify(notes), (err) =>
+      err ? console.error(err) : console.log('Success!'));
+      };
+    } catch(err) {
+        console.log(err)
+    }
+  });
     const response = {
       status: 'success',
-      body: newNote,
+      body: notes,
     };
 
     res.json(response);
   } else {
-    res.json('Error in posting note');
+    res.json('Error in deleting note');
   }
 });
 
